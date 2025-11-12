@@ -1,4 +1,4 @@
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use chrono::Utc;
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
@@ -12,8 +12,8 @@ struct Status {
     message: String,
 }
 
-#[derive(Deserialize)]
-struct SearchQuery {
+#[derive(Serialize, Deserialize)]
+struct SearchRequest {
     q: String,
 }
 
@@ -30,11 +30,6 @@ struct Hit {
     description: String,
     reading_time: String,
     slug: String,
-}
-
-#[derive(Serialize)]
-struct SearchRequest {
-    q: String,
 }
 
 #[derive(Clone)]
@@ -54,26 +49,22 @@ async fn status() -> impl Responder {
     HttpResponse::Ok().json(response)
 }
 
-#[get("/search")]
+#[post("/search")]
 async fn search_handler(
-    query: web::Query<SearchQuery>,
+    body: web::Json<SearchRequest>,
     client: web::Data<Arc<Client>>,
     config: web::Data<MeiliConfig>,
 ) -> impl Responder {
-    if query.q.trim().is_empty() {
+    if body.q.trim().is_empty() {
         return HttpResponse::BadRequest().body("Query cannot be empty");
     }
 
     let url = format!("{}/indexes/posts/search", config.url);
-    
-    let request_body = SearchRequest {
-        q: query.q.trim().to_string(),
-    };
 
     let response = match client
         .post(&url)
         .header("Authorization", format!("Bearer {}", config.api_key))
-        .json(&request_body)
+        .json(&body.0)
         .send()
         .await
     {
@@ -95,7 +86,6 @@ async fn search_handler(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     dotenv::dotenv().ok();
 
     let config = MeiliConfig {

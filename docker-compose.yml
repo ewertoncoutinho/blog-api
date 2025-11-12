@@ -19,7 +19,10 @@ services:
       timeout: 10s
 
   blog-api:
-    image: blog-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: blog-api:latest
     container_name: blog-api
     environment:
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
