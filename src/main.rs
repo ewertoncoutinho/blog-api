@@ -2,7 +2,6 @@ use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use chrono::Utc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::sync::Arc;
 use std::env;
 
@@ -61,18 +60,11 @@ async fn search_handler(
     }
 
     let url = format!("{}/indexes/posts/search", config.url);
-    let payload = json!({
-        "q": body.q,
-        "matchingStrategy": "all",
-        "attributesToRetrieve": ["id", "title", "description", "slug", "date", "reading_time"],
-        "attributesToHighlight": ["*"],
-        "sort": ["date:desc"],
-    });
 
     let response = match client
         .post(&url)
         .header("Authorization", format!("Bearer {}", config.api_key))
-        .json(&payload)
+        .json(&body.0)
         .send()
         .await
     {
