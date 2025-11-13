@@ -60,11 +60,18 @@ async fn search_handler(
     }
 
     let url = format!("{}/indexes/posts/search", config.url);
+    let mut payload = serde_json::json!({
+        "q": body.q,
+        "matchingStrategy": "all",
+        "attributesToRetrieve": ["id", "title", "description", "slug", "date", "reading_time"],
+        "attributesToHighlight": ["*"],
+        "sort": ["date:desc"],
+    });
 
     let response = match client
         .post(&url)
         .header("Authorization", format!("Bearer {}", config.api_key))
-        .json(&body.0)
+        .json(&payload)
         .send()
         .await
     {
