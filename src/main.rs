@@ -1,7 +1,8 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use chrono::Utc;
 use reqwest::Client;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::sync::Arc;
 use std::env;
 
@@ -60,7 +61,7 @@ async fn search_handler(
     }
 
     let url = format!("{}/indexes/posts/search", config.url);
-    let mut payload = serde_json::json!({
+    let payload = json!({
         "q": body.q,
         "matchingStrategy": "all",
         "attributesToRetrieve": ["id", "title", "description", "slug", "date", "reading_time"],
@@ -108,8 +109,8 @@ async fn main() -> std::io::Result<()> {
 
     let client = Arc::new(Client::new());
 
-    println!("Server starting on localhost:8080");
-    println!("Connected to Meilisearch at {}", config.url);
+    println!("✅ Server running on http://0.0.0.0:8080");
+    println!("🔗 Connected to Meilisearch at {}", config.url);
 
     HttpServer::new(move || {
         App::new()
